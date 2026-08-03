@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meu Estoque</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #f2f4f7;
+            color: #222;
+        }
+
+        header {
+            background: #2563eb;
+            color: white;
+            padding: 25px 15px;
+            text-align: center;
+        }
+
+        header h1 {
+            margin: 0;
+        }
+
+        main {
+            max-width: 600px;
+            margin: 30px auto;
+            padding: 20px;
+        }
+
+        .caixa {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+        }
+
+        input {
+            width: 100%;
+            padding: 15px;
+            margin-top: 10px;
+            border: 1px solid #ccc;
+            border-radius: 10px;
+            font-size: 16px;
+        }
+
+        button {
+            width: 100%;
+            padding: 15px;
+            margin-top: 15px;
+            border: none;
+            border-radius: 10px;
+            background: #2563eb;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #1d4ed8;
+        }
+
+        #resultado {
+            margin-top: 20px;
+        }
+
+        .produto {
+            background: #f8fafc;
+            border: 1px solid #ddd;
+            padding: 20px;
+            border-radius: 10px;
+        }
+
+        .produto h2 {
+            margin-top: 0;
+            color: #2563eb;
+        }
+    </style>
+</head>
+
+<body>
+
+    <header>
+        <h1>📦 Meu Estoque</h1>
+        <p>Consulte nossos produtos</p>
+    </header>
+
+    <main>
+        <div class="caixa">
+
+            <h2>🔎 Pesquisar produto</h2>
+
+            <input 
+                type="text" 
+                id="busca" 
+                placeholder="Digite o nome do produto"
+            >
+
+            <button onclick="pesquisar()">
+                Pesquisar
+            </button>
+
+            <div id="resultado"></div>
+
+        </div>
+    </main>
+
+    <script>
+        function pesquisar() {
+
+            const nome = document.getElementById("busca").value;
+
+            const resultado = document.getElementById("resultado");
+
+            if (nome.trim() === "") {
+                resultado.innerHTML = 
+                    "<p>Digite o nome de um produto.</p>";
+                return;
+            }
+
+            resultado.innerHTML = `
+                <div class="produto">
+                    <h2>${nome}</h2>
+                    <p>📦 Quantidade: 25</p>
+                    <p>💰 Preço: R$ 10,00</p>
+                    <p>📝 Informações: Produto disponível.</p>
+                </div>
+            `;
+        }
+    </script>
+
+</body>
+</html>
