@@ -1,12 +1,17 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <title>Meu Estoque</title>
 
+    <!-- Biblioteca oficial do Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
     <style>
+
         * {
             box-sizing: border-box;
         }
@@ -27,6 +32,11 @@
 
         header h1 {
             margin: 0;
+            font-size: 28px;
+        }
+
+        header p {
+            margin-bottom: 0;
         }
 
         main {
@@ -63,6 +73,10 @@
             cursor: pointer;
         }
 
+        button:hover {
+            background: #1d4ed8;
+        }
+
         #resultado {
             margin-top: 20px;
         }
@@ -81,17 +95,34 @@
         }
 
         .erro {
-            color: red;
+            background: #fee2e2;
+            color: #991b1b;
+            padding: 15px;
+            border-radius: 10px;
+            word-break: break-word;
         }
+
+        .sucesso {
+            background: #dcfce7;
+            color: #166534;
+            padding: 15px;
+            border-radius: 10px;
+        }
+
     </style>
+
 </head>
 
 <body>
 
 <header>
+
     <h1>📦 Meu Estoque</h1>
+
     <p>Consulte nossos produtos</p>
+
 </header>
+
 
 <main>
 
@@ -99,14 +130,14 @@
 
         <h2>🔎 Pesquisar produto</h2>
 
-        <input 
-            type="text" 
-            id="busca" 
+        <input
+            type="text"
+            id="busca"
             placeholder="Digite o nome do produto"
         >
 
         <button onclick="pesquisar()">
-            Pesquisar
+            🔍 Pesquisar
         </button>
 
         <div id="resultado"></div>
@@ -115,110 +146,229 @@
 
 </main>
 
+
 <script>
 
-// ======================================
+// ==================================================
 // CONFIGURAÇÃO DO SUPABASE
-// ======================================
+// ==================================================
 
 // COLOQUE AQUI A SUA PROJECT URL
-const SUPABASE_URL = "https://nujligvlqfwlcczaeyij.supabase.co";
+const SUPABASE_URL =
+"https://nujligvlqfwlcczaeyij.supabase.co";
+
 
 // COLOQUE AQUI A SUA PUBLISHABLE KEY
-const SUPABASE_KEY = "sb_publishable_uY2H1Mg4TLy686rMcQ3LAw_0k-wAC-C";
+const SUPABASE_KEY =
+"sb_publishable_uY2H1Mg4TLy686rMcQ3LAw_0k-wAC-C";
 
 
-// ======================================
-// FUNÇÃO PARA PESQUISAR PRODUTO
-// ======================================
+// ==================================================
+// CONECTAR AO SUPABASE
+// ==================================================
+
+const supabaseClient =
+    window.supabase.createClient(
+        SUPABASE_URL,
+        SUPABASE_KEY
+    );
+
+
+// ==================================================
+// PESQUISAR PRODUTO
+// ==================================================
 
 async function pesquisar() {
 
-    const nome = document
+    // Pegar o texto digitado
+    const nome =
+        document
         .getElementById("busca")
         .value
         .trim();
 
-    const resultado = document
+
+    // Área onde aparece o resultado
+    const resultado =
+        document
         .getElementById("resultado");
 
+
+    // Verificar se o usuário digitou alguma coisa
     if (nome === "") {
 
-        resultado.innerHTML =
-            "<p>Digite o nome de um produto.</p>";
+        resultado.innerHTML = `
+            <p>
+                ⚠️ Digite o nome de um produto.
+            </p>
+        `;
 
         return;
     }
 
-    resultado.innerHTML =
-        "<p>🔎 Pesquisando...</p>";
+
+    // Mostrar mensagem enquanto pesquisa
+    resultado.innerHTML = `
+        <p>
+            🔎 Pesquisando...
+        </p>
+    `;
+
 
     try {
 
-        const resposta = await fetch(
-            `${SUPABASE_URL}/rest/v1/produtos?nome=ilike.*${encodeURIComponent(nome)}*&select=*`,
-            {
-                method: "GET",
+        // Consultar a tabela produtos
+        const { data, error } =
 
-                headers: {
-                    "apikey": SUPABASE_KEY,
-                }
-            }
-        );
+            await supabaseClient
 
-        if (!resposta.ok) {
-            throw new Error("Erro ao consultar o banco de dados.");
-        }
+            .from("produtos")
 
-        const produtos = await resposta.json();
+            .select("*")
 
-        if (produtos.length === 0) {
+            .ilike(
+                "nome",
+                `%${nome}%`
+            );
 
-            resultado.innerHTML =
-                "<p>❌ Produto não encontrado.</p>";
 
-            return;
-        }
+        // Se o Supabase retornar um erro
+        if (error) {
 
-        resultado.innerHTML = "";
+            console.error(
+                "Erro do Supabase:",
+                error
+            );
 
-        produtos.forEach(produto => {
+            resultado.innerHTML = `
 
-            resultado.innerHTML += `
+                <div class="erro">
 
-                <div class="produto">
+                    ❌ Erro ao consultar o estoque.
 
-                    <h2>📦 ${produto.nome}</h2>
+                    <br><br>
 
-                    <p>
-                        🔢 Quantidade:
-                        <strong>${produto.quantidade}</strong>
-                    </p>
+                    <strong>Detalhes:</strong>
 
-                    <p>
-                        💰 Preço:
-                        <strong>R$ ${Number(produto.preco).toFixed(2)}</strong>
-                    </p>
+                    <br>
 
-                    <p>
-                        📝 Informações:
-                        ${produto.informacoes || "Nenhuma informação adicional."}
-                    </p>
+                    ${error.message}
 
                 </div>
 
             `;
 
-        });
+            return;
+        }
+
+
+        // Se nenhum produto foi encontrado
+        if (!data || data.length === 0) {
+
+            resultado.innerHTML = `
+
+                <p>
+                    ❌ Produto não encontrado.
+                </p>
+
+            `;
+
+            return;
+        }
+
+
+        // Limpar resultado anterior
+        resultado.innerHTML = "";
+
+
+        // Mostrar todos os produtos encontrados
+        data.forEach(
+            produto => {
+
+                resultado.innerHTML += `
+
+                    <div class="produto">
+
+                        <h2>
+                            📦 ${produto.nome}
+                        </h2>
+
+
+                        <p>
+
+                            🔢 Quantidade:
+
+                            <strong>
+                                ${produto.quantidade}
+                            </strong>
+
+                        </p>
+
+
+                        <p>
+
+                            💰 Preço:
+
+                            <strong>
+
+                                R$
+
+                                ${Number(
+                                    produto.preco
+                                ).toFixed(2)}
+
+                            </strong>
+
+                        </p>
+
+
+                        <p>
+
+                            📝 Informações:
+
+                            ${
+                                produto.informacoes
+                                ||
+                                "Nenhuma informação adicional."
+                            }
+
+                        </p>
+
+                    </div>
+
+                `;
+
+            }
+        );
+
 
     } catch (erro) {
 
-        console.error(erro);
+
+        console.error(
+            "Erro inesperado:",
+            erro
+        );
+
 
         resultado.innerHTML = `
-            <p class="erro">
-                ❌ Não foi possível consultar o estoque.
-            </p>
+
+            <div class="erro">
+
+                ❌ Não foi possível conectar ao estoque.
+
+                <br><br>
+
+                <strong>
+                    Detalhes:
+                </strong>
+
+                <br>
+
+                ${erro.message || erro}
+
+            </div>
+
         `;
 
     }
@@ -228,4 +378,5 @@ async function pesquisar() {
 </script>
 
 </body>
+
 </html>
