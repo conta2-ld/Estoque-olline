@@ -2,13 +2,19 @@
 <html lang="pt-BR">
 
 <head>
+
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>Meu Estoque</title>
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
 
-    <!-- Biblioteca oficial do Supabase -->
+    <title>Estoque Online</title>
+
+    <!-- Supabase -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
 
     <style>
 
@@ -16,366 +22,1193 @@
             box-sizing: border-box;
         }
 
+
         body {
+
             margin: 0;
+
             font-family: Arial, sans-serif;
+
             background: #f2f4f7;
+
             color: #222;
+
         }
+
 
         header {
+
             background: #2563eb;
+
             color: white;
+
             padding: 25px 15px;
+
             text-align: center;
+
         }
+
 
         header h1 {
+
             margin: 0;
-            font-size: 28px;
+
         }
 
-        header p {
-            margin-bottom: 0;
-        }
 
         main {
-            max-width: 600px;
-            margin: 30px auto;
-            padding: 20px;
+
+            max-width: 700px;
+
+            margin: 25px auto;
+
+            padding: 15px;
+
         }
+
 
         .caixa {
+
             background: white;
+
             padding: 25px;
+
             border-radius: 15px;
-            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+
+            margin-bottom: 20px;
+
+            box-shadow:
+                0 3px 10px
+                rgba(0,0,0,0.1);
+
         }
+
 
         input {
+
             width: 100%;
-            padding: 15px;
+
+            padding: 14px;
+
             margin-top: 10px;
+
             border: 1px solid #ccc;
+
             border-radius: 10px;
+
             font-size: 16px;
+
         }
+
 
         button {
+
             width: 100%;
-            padding: 15px;
-            margin-top: 15px;
+
+            padding: 14px;
+
+            margin-top: 12px;
+
             border: none;
+
             border-radius: 10px;
+
             background: #2563eb;
+
             color: white;
+
             font-size: 16px;
+
             cursor: pointer;
+
         }
+
 
         button:hover {
+
             background: #1d4ed8;
+
         }
 
-        #resultado {
-            margin-top: 20px;
+
+        .botao-vermelho {
+
+            background: #dc2626;
+
         }
+
+
+        .botao-verde {
+
+            background: #16a34a;
+
+        }
+
 
         .produto {
+
             background: #f8fafc;
+
             border: 1px solid #ddd;
+
             padding: 20px;
+
             border-radius: 10px;
+
             margin-top: 15px;
+
         }
 
-        .produto h2 {
-            margin-top: 0;
+
+        .produto h3 {
+
             color: #2563eb;
+
         }
+
 
         .erro {
+
             background: #fee2e2;
+
             color: #991b1b;
+
             padding: 15px;
+
             border-radius: 10px;
-            word-break: break-word;
+
+            margin-top: 15px;
+
         }
 
+
         .sucesso {
+
             background: #dcfce7;
+
             color: #166534;
+
             padding: 15px;
+
             border-radius: 10px;
+
+            margin-top: 15px;
+
         }
+
+
+        .admin {
+
+            display: none;
+
+        }
+
+
+        .linha-produto {
+
+            border: 1px solid #ddd;
+
+            padding: 15px;
+
+            margin-top: 10px;
+
+            border-radius: 10px;
+
+            background: #fafafa;
+
+        }
+
 
     </style>
 
 </head>
 
+
 <body>
+
 
 <header>
 
-    <h1>📦 Meu Estoque</h1>
+    <h1>📦 Estoque Online</h1>
 
     <p>Consulte nossos produtos</p>
 
 </header>
 
 
+
 <main>
+
+
+    <!-- ========================== -->
+    <!-- ÁREA DO CLIENTE -->
+    <!-- ========================== -->
+
 
     <div class="caixa">
 
-        <h2>🔎 Pesquisar produto</h2>
+        <h2>👤 Área do Cliente</h2>
+
+        <p>
+            Pesquise um produto pelo nome.
+        </p>
+
 
         <input
+
             type="text"
+
             id="busca"
-            placeholder="Digite o nome do produto"
+
+            placeholder="Exemplo: Arroz"
+
         >
 
+
         <button onclick="pesquisar()">
-            🔍 Pesquisar
+
+            🔎 Pesquisar
+
         </button>
+
 
         <div id="resultado"></div>
 
     </div>
 
+
+
+    <!-- ========================== -->
+    <!-- LOGIN ADMINISTRADOR -->
+    <!-- ========================== -->
+
+
+    <div
+        class="caixa"
+        id="areaLogin"
+    >
+
+        <h2>🔐 Área do Administrador</h2>
+
+
+        <input
+
+            type="email"
+
+            id="email"
+
+            placeholder="E-mail"
+
+        >
+
+
+        <input
+
+            type="password"
+
+            id="senha"
+
+            placeholder="Senha"
+
+        >
+
+
+        <button onclick="login()">
+
+            🔑 Entrar
+
+        </button>
+
+
+        <div id="mensagemLogin"></div>
+
+    </div>
+
+
+
+    <!-- ========================== -->
+    <!-- PAINEL ADMINISTRADOR -->
+    <!-- ========================== -->
+
+
+    <div
+        class="caixa admin"
+        id="painelAdmin"
+    >
+
+        <h2>⚙️ Painel do Administrador</h2>
+
+
+        <button
+            class="botao-vermelho"
+            onclick="logout()"
+        >
+
+            🚪 Sair
+
+        </button>
+
+
+        <hr>
+
+
+        <h3>➕ Cadastrar produto</h3>
+
+
+        <input
+
+            type="text"
+
+            id="novoNome"
+
+            placeholder="Nome do produto"
+
+        >
+
+
+        <input
+
+            type="number"
+
+            id="novaQuantidade"
+
+            placeholder="Quantidade"
+
+        >
+
+
+        <input
+
+            type="number"
+
+            step="0.01"
+
+            id="novoPreco"
+
+            placeholder="Preço"
+
+        >
+
+
+        <input
+
+            type="text"
+
+            id="novasInformacoes"
+
+            placeholder="Informações"
+
+        >
+
+
+        <button
+
+            class="botao-verde"
+
+            onclick="cadastrarProduto()"
+
+        >
+
+            ➕ Cadastrar
+
+        </button>
+
+
+        <div id="mensagemCadastro"></div>
+
+
+        <hr>
+
+
+        <h3>📦 Produtos cadastrados</h3>
+
+
+        <div id="listaAdmin">
+
+            Carregando produtos...
+
+        </div>
+
+
+    </div>
+
+
 </main>
+
 
 
 <script>
 
+
 // ==================================================
-// CONFIGURAÇÃO DO SUPABASE
+// CONFIGURAÇÃO
 // ==================================================
 
-// COLOQUE AQUI A SUA PROJECT URL
+
 const SUPABASE_URL =
 "https://nujligvlqfwlcczaeyij.supabase.co";
 
 
-// COLOQUE AQUI A SUA PUBLISHABLE KEY
 const SUPABASE_KEY =
 "sb_publishable_uY2H1Mg4TLy686rMcQ3LAw_0k-wAC-C";
 
 
-// ==================================================
-// CONECTAR AO SUPABASE
-// ==================================================
 
 const supabaseClient =
+
     window.supabase.createClient(
+
         SUPABASE_URL,
+
         SUPABASE_KEY
+
     );
+
 
 
 // ==================================================
 // PESQUISAR PRODUTO
 // ==================================================
 
+
 async function pesquisar() {
 
-    // Pegar o texto digitado
+
     const nome =
+
         document
+
         .getElementById("busca")
+
         .value
+
         .trim();
 
 
-    // Área onde aparece o resultado
     const resultado =
+
         document
+
         .getElementById("resultado");
 
 
-    // Verificar se o usuário digitou alguma coisa
     if (nome === "") {
 
+
         resultado.innerHTML = `
+
             <p>
-                ⚠️ Digite o nome de um produto.
+
+                ⚠️ Digite um produto.
+
             </p>
+
         `;
 
+
         return;
+
     }
 
 
-    // Mostrar mensagem enquanto pesquisa
-    resultado.innerHTML = `
-        <p>
-            🔎 Pesquisando...
-        </p>
-    `;
+    resultado.innerHTML =
+
+        "<p>🔎 Pesquisando...</p>";
 
 
-    try {
 
-        // Consultar a tabela produtos
-        const { data, error } =
+    const { data, error } =
 
-            await supabaseClient
+        await supabaseClient
 
-            .from("produtos")
+        .from("produtos")
 
-            .select("*")
+        .select("*")
 
-            .ilike(
-                "nome",
-                `%${nome}%`
-            );
+        .ilike(
 
+            "nome",
 
-        // Se o Supabase retornar um erro
-        if (error) {
+            `%${nome}%`
 
-            console.error(
-                "Erro do Supabase:",
-                error
-            );
-
-            resultado.innerHTML = `
-
-                <div class="erro">
-
-                    ❌ Erro ao consultar o estoque.
-
-                    <br><br>
-
-                    <strong>Detalhes:</strong>
-
-                    <br>
-
-                    ${error.message}
-
-                </div>
-
-            `;
-
-            return;
-        }
-
-
-        // Se nenhum produto foi encontrado
-        if (!data || data.length === 0) {
-
-            resultado.innerHTML = `
-
-                <p>
-                    ❌ Produto não encontrado.
-                </p>
-
-            `;
-
-            return;
-        }
-
-
-        // Limpar resultado anterior
-        resultado.innerHTML = "";
-
-
-        // Mostrar todos os produtos encontrados
-        data.forEach(
-            produto => {
-
-                resultado.innerHTML += `
-
-                    <div class="produto">
-
-                        <h2>
-                            📦 ${produto.nome}
-                        </h2>
-
-
-                        <p>
-
-                            🔢 Quantidade:
-
-                            <strong>
-                                ${produto.quantidade}
-                            </strong>
-
-                        </p>
-
-
-                        <p>
-
-                            💰 Preço:
-
-                            <strong>
-
-                                R$
-
-                                ${Number(
-                                    produto.preco
-                                ).toFixed(2)}
-
-                            </strong>
-
-                        </p>
-
-
-                        <p>
-
-                            📝 Informações:
-
-                            ${
-                                produto.informacoes
-                                ||
-                                "Nenhuma informação adicional."
-                            }
-
-                        </p>
-
-                    </div>
-
-                `;
-
-            }
         );
 
 
-    } catch (erro) {
 
-
-        console.error(
-            "Erro inesperado:",
-            erro
-        );
+    if (error) {
 
 
         resultado.innerHTML = `
 
             <div class="erro">
 
-                ❌ Não foi possível conectar ao estoque.
+                ❌ Erro:
 
-                <br><br>
-
-                <strong>
-                    Detalhes:
-                </strong>
-
-                <br>
-
-                ${erro.message || erro}
+                ${error.message}
 
             </div>
 
         `;
 
+
+        return;
+
     }
+
+
+
+    if (!data || data.length === 0) {
+
+
+        resultado.innerHTML = `
+
+            <p>
+
+                ❌ Produto não encontrado.
+
+            </p>
+
+        `;
+
+
+        return;
+
+    }
+
+
+
+    resultado.innerHTML = "";
+
+
+
+    data.forEach(
+
+        produto => {
+
+
+            resultado.innerHTML += `
+
+                <div class="produto">
+
+                    <h3>
+
+                        📦 ${produto.nome}
+
+                    </h3>
+
+
+                    <p>
+
+                        🔢 Quantidade:
+
+                        <strong>
+
+                            ${produto.quantidade}
+
+                        </strong>
+
+                    </p>
+
+
+                    <p>
+
+                        💰 Preço:
+
+                        <strong>
+
+                            R$
+
+                            ${Number(
+
+                                produto.preco
+
+                            ).toFixed(2)}
+
+                        </strong>
+
+                    </p>
+
+
+                    <p>
+
+                        📝
+
+                        ${produto.informacoes || ""}
+
+                    </p>
+
+                </div>
+
+            `;
+
+        }
+
+    );
 
 }
 
+
+
+// ==================================================
+// LOGIN
+// ==================================================
+
+
+async function login() {
+
+
+    const email =
+
+        document
+
+        .getElementById("email")
+
+        .value;
+
+
+    const senha =
+
+        document
+
+        .getElementById("senha")
+
+        .value;
+
+
+
+    const mensagem =
+
+        document
+
+        .getElementById("mensagemLogin");
+
+
+
+    const { data, error } =
+
+        await supabaseClient
+
+        .auth
+
+        .signInWithPassword({
+
+            email: email,
+
+            password: senha
+
+        });
+
+
+
+    if (error) {
+
+
+        mensagem.innerHTML = `
+
+            <div class="erro">
+
+                ❌
+
+                ${error.message}
+
+            </div>
+
+        `;
+
+
+        return;
+
+    }
+
+
+
+    mensagem.innerHTML = `
+
+        <div class="sucesso">
+
+            ✅ Login realizado!
+
+        </div>
+
+    `;
+
+
+    mostrarPainel();
+
+}
+
+
+
+// ==================================================
+// MOSTRAR PAINEL
+// ==================================================
+
+
+function mostrarPainel() {
+
+
+    document
+
+        .getElementById(
+
+            "areaLogin"
+
+        )
+
+        .style.display = "none";
+
+
+
+    document
+
+        .getElementById(
+
+            "painelAdmin"
+
+        )
+
+        .style.display = "block";
+
+
+
+    carregarProdutosAdmin();
+
+}
+
+
+
+// ==================================================
+// LOGOUT
+// ==================================================
+
+
+async function logout() {
+
+
+    await supabaseClient
+
+        .auth
+
+        .signOut();
+
+
+    document
+
+        .getElementById(
+
+            "painelAdmin"
+
+        )
+
+        .style.display = "none";
+
+
+    document
+
+        .getElementById(
+
+            "areaLogin"
+
+        )
+
+        .style.display = "block";
+
+}
+
+
+
+// ==================================================
+// CADASTRAR PRODUTO
+// ==================================================
+
+
+async function cadastrarProduto() {
+
+
+    const nome =
+
+        document
+
+        .getElementById(
+
+            "novoNome"
+
+        )
+
+        .value;
+
+
+    const quantidade =
+
+        Number(
+
+            document
+
+            .getElementById(
+
+                "novaQuantidade"
+
+            )
+
+            .value
+
+        );
+
+
+    const preco =
+
+        Number(
+
+            document
+
+            .getElementById(
+
+                "novoPreco"
+
+            )
+
+            .value
+
+        );
+
+
+    const informacoes =
+
+        document
+
+        .getElementById(
+
+            "novasInformacoes"
+
+        )
+
+        .value;
+
+
+
+    const mensagem =
+
+        document
+
+        .getElementById(
+
+            "mensagemCadastro"
+
+        );
+
+
+
+    const { error } =
+
+        await supabaseClient
+
+        .from("produtos")
+
+        .insert({
+
+            nome:
+
+                nome,
+
+            quantidade:
+
+                quantidade,
+
+            preco:
+
+                preco,
+
+            informacoes:
+
+                informacoes
+
+        });
+
+
+
+    if (error) {
+
+
+        mensagem.innerHTML = `
+
+            <div class="erro">
+
+                ❌
+
+                ${error.message}
+
+            </div>
+
+        `;
+
+
+        return;
+
+    }
+
+
+
+    mensagem.innerHTML = `
+
+        <div class="sucesso">
+
+            ✅ Produto cadastrado!
+
+        </div>
+
+    `;
+
+
+
+    document
+
+        .getElementById(
+
+            "novoNome"
+
+        )
+
+        .value = "";
+
+
+    document
+
+        .getElementById(
+
+            "novaQuantidade"
+
+        )
+
+        .value = "";
+
+
+    document
+
+        .getElementById(
+
+            "novoPreco"
+
+        )
+
+        .value = "";
+
+
+    document
+
+        .getElementById(
+
+            "novasInformacoes"
+
+        )
+
+        .value = "";
+
+
+
+    carregarProdutosAdmin();
+
+}
+
+
+
+// ==================================================
+// CARREGAR PRODUTOS DO ADMIN
+// ==================================================
+
+
+async function carregarProdutosAdmin() {
+
+
+    const lista =
+
+        document
+
+        .getElementById(
+
+            "listaAdmin"
+
+        );
+
+
+
+    const { data, error } =
+
+        await supabaseClient
+
+        .from("produtos")
+
+        .select("*")
+
+        .order(
+
+            "id",
+
+            {
+
+                ascending:
+
+                    false
+
+            }
+
+        );
+
+
+
+    if (error) {
+
+
+        lista.innerHTML =
+
+            "❌ " +
+
+            error.message;
+
+
+        return;
+
+    }
+
+
+
+    lista.innerHTML = "";
+
+
+
+    data.forEach(
+
+        produto => {
+
+
+            lista.innerHTML += `
+
+                <div class="linha-produto">
+
+                    <strong>
+
+                        📦
+
+                        ${produto.nome}
+
+                    </strong>
+
+
+                    <br><br>
+
+
+                    Quantidade:
+
+                    ${produto.quantidade}
+
+
+                    <br>
+
+
+                    Preço:
+
+                    R$
+
+                    ${Number(
+
+                        produto.preco
+
+                    ).toFixed(2)}
+
+
+                    <br><br>
+
+
+                    <button
+
+                        onclick="excluirProduto(${produto.id})"
+
+                        class="botao-vermelho"
+
+                    >
+
+                        🗑️ Excluir
+
+                    </button>
+
+                </div>
+
+            `;
+
+        }
+
+    );
+
+}
+
+
+
+// ==================================================
+// EXCLUIR PRODUTO
+// ==================================================
+
+
+async function excluirProduto(id) {
+
+
+    if (
+
+        !confirm(
+
+            "Deseja realmente excluir este produto?"
+
+        )
+
+    ) {
+
+        return;
+
+    }
+
+
+
+    const { error } =
+
+        await supabaseClient
+
+        .from("produtos")
+
+        .delete()
+
+        .eq(
+
+            "id",
+
+            id
+
+        );
+
+
+
+    if (error) {
+
+
+        alert(
+
+            "Erro: " +
+
+            error.message
+
+        );
+
+
+        return;
+
+    }
+
+
+
+    carregarProdutosAdmin();
+
+}
+
+
 </script>
+
 
 </body>
 
