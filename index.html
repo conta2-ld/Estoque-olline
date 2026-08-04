@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <title>Meu Estoque</title>
 
     <style>
@@ -62,10 +63,6 @@
             cursor: pointer;
         }
 
-        button:hover {
-            background: #1d4ed8;
-        }
-
         #resultado {
             margin-top: 20px;
         }
@@ -75,65 +72,161 @@
             border: 1px solid #ddd;
             padding: 20px;
             border-radius: 10px;
+            margin-top: 15px;
         }
 
         .produto h2 {
             margin-top: 0;
             color: #2563eb;
         }
+
+        .erro {
+            color: red;
+        }
     </style>
 </head>
 
 <body>
 
-    <header>
-        <h1>📦 Meu Estoque</h1>
-        <p>Consulte nossos produtos</p>
-    </header>
+<header>
+    <h1>📦 Meu Estoque</h1>
+    <p>Consulte nossos produtos</p>
+</header>
 
-    <main>
-        <div class="caixa">
+<main>
 
-            <h2>🔎 Pesquisar produto</h2>
+    <div class="caixa">
 
-            <input 
-                type="text" 
-                id="busca" 
-                placeholder="Digite o nome do produto"
-            >
+        <h2>🔎 Pesquisar produto</h2>
 
-            <button onclick="pesquisar()">
-                Pesquisar
-            </button>
+        <input 
+            type="text" 
+            id="busca" 
+            placeholder="Digite o nome do produto"
+        >
 
-            <div id="resultado"></div>
+        <button onclick="pesquisar()">
+            Pesquisar
+        </button>
 
-        </div>
-    </main>
+        <div id="resultado"></div>
 
-    <script>
-        function pesquisar() {
+    </div>
 
-            const nome = document.getElementById("busca").value;
+</main>
 
-            const resultado = document.getElementById("resultado");
+<script>
 
-            if (nome.trim() === "") {
-                resultado.innerHTML = 
-                    "<p>Digite o nome de um produto.</p>";
-                return;
+// ======================================
+// CONFIGURAÇÃO DO SUPABASE
+// ======================================
+
+// COLOQUE AQUI A SUA PROJECT URL
+const SUPABASE_URL = "https://nujligvlqfwlcczaeyij.supabase.co/rest/v1/";
+
+// COLOQUE AQUI A SUA PUBLISHABLE KEY
+const SUPABASE_KEY = "sb_publishable_uY2H1Mg4TLy686rMcQ3LAw_0k-wAC-C";
+
+
+// ======================================
+// FUNÇÃO PARA PESQUISAR PRODUTO
+// ======================================
+
+async function pesquisar() {
+
+    const nome = document
+        .getElementById("busca")
+        .value
+        .trim();
+
+    const resultado = document
+        .getElementById("resultado");
+
+    if (nome === "") {
+
+        resultado.innerHTML =
+            "<p>Digite o nome de um produto.</p>";
+
+        return;
+    }
+
+    resultado.innerHTML =
+        "<p>🔎 Pesquisando...</p>";
+
+    try {
+
+        const resposta = await fetch(
+            `${SUPABASE_URL}/rest/v1/produtos?nome=ilike.*${encodeURIComponent(nome)}*&select=*`,
+            {
+                method: "GET",
+
+                headers: {
+                    "apikey": SUPABASE_KEY,
+                    "Authorization": `Bearer ${SUPABASE_KEY}`
+                }
             }
+        );
 
-            resultado.innerHTML = `
-                <div class="produto">
-                    <h2>${nome}</h2>
-                    <p>📦 Quantidade: 25</p>
-                    <p>💰 Preço: R$ 10,00</p>
-                    <p>📝 Informações: Produto disponível.</p>
-                </div>
-            `;
+        if (!resposta.ok) {
+            throw new Error("Erro ao consultar o banco de dados.");
         }
-    </script>
+
+        const produtos = await resposta.json();
+
+        if (produtos.length === 0) {
+
+            resultado.innerHTML =
+                "<p>❌ Produto não encontrado.</p>";
+
+            return;
+        }
+
+        resultado.innerHTML = "";
+
+        produtos.forEach(produto => {
+
+            resultado.innerHTML += `
+
+                <div class="produto">
+
+                    <h2>📦 ${produto.nome}</h2>
+
+                    <p>
+                        🔢 Quantidade:
+                        <strong>${produto.quantidade}</strong>
+                    </p>
+
+                    <p>
+                        💰 Preço:
+                        <strong>R$ ${Number(produto.preco).toFixed(2)}</strong>
+                    </p>
+
+                    <p>
+                        📝 Informações:
+                        ${produto.informacoes || "Nenhuma informação adicional."}
+                    </p>
+
+                </div>
+
+            `;
+
+        });
+
+    } catch (erro) {
+
+        console.error(erro);
+
+        resultado.innerHTML = `
+            <p class="erro">
+                ❌ Não foi possível consultar o estoque.
+            </p>
+        `;
+
+    }
+
+}
+
+</script>
 
 </body>
 </html>
